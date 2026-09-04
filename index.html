@@ -138,6 +138,8 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
 .tsl::before{content:'';position:absolute;width:16px;height:16px;background:var(--text3);border-radius:50%;top:2px;left:2px;transition:.2s}
 .tog input:checked+.tsl{background:#1a2e1a;border-color:#2d5a2d}
 .tog input:checked+.tsl::before{transform:translateX(18px);background:#6fcf6f}
+.fhint{font-size:11.5px;color:var(--muted,#8a8a8a);line-height:1.55;margin:.35rem 0 .6rem;padding:.5rem .6rem;border-left:2px solid rgba(128,128,128,.3);border-radius:0 6px 6px 0}
+.fhint b{color:inherit;font-weight:600}
 .factions{display:flex;gap:.5rem;margin-top:.6rem}
 .bsave{flex:1;padding:.6rem;border-radius:8px;background:var(--accent);color:var(--bg);border:none;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer}
 .bsave:active{opacity:.85}
@@ -254,7 +256,13 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
       <div class="fgroup"><div class="flbl">Proveedor</div><input class="fi" id="np" placeholder="Proveedor"></div>
       <div class="fgroup"><div class="flbl">Precio/ud (€)</div><input class="fi" id="npr" type="number" step="0.001" min="0" placeholder="0.00"></div>
       <div class="fgroup"><div class="flbl">Stock mínimo</div><input class="fi" id="nm" type="number" step="0.1" min="0" placeholder="0"></div>
+      <div class="fgroup"><div class="flbl">Contenido del bulto</div><input class="fi" id="ncont" type="number" step="1" min="0" placeholder="p. ej. 2500"></div>
+      <div class="fgroup"><div class="flbl">Unidad de receta</div><select class="fi" id="nur">
+        <option value="g">g — gramos</option><option value="ml">ml — mililitros</option><option value="ud">ud — unidades</option></select></div>
     </div>
+    <p class="fhint">El <b>contenido del bulto</b> es cuánto trae el formato que compras, en la unidad de receta.
+    Una lata de 2,5 kg de tomate son <b>2500</b> con unidad <b>g</b>. De ahí sale el coste por gramo
+    (precio ÷ contenido): si te lo saltas, el coste de sus recetas saldrá con un error de factor.</p>
     <div class="ftog"><label class="tog"><input type="checkbox" id="nkg"><span class="tsl"></span></label><span class="ftlbl">Medir en kilogramos</span></div>
     <div class="mda" style="margin-top:.75rem"><button class="mcancel" onclick="closeModal('m-new')">Cancelar</button><button class="mok" onclick="saveNew()">Guardar producto</button></div>
   </div>
@@ -636,7 +644,15 @@ function renderAdmin() {
       <div class="fgroup"><div class="flbl">Proveedor</div><input class="fi" data-f="p" value="${p.p}"></div>
       <div class="fgroup"><div class="flbl">Precio/ud (€)</div><input class="fi" type="number" step="0.001" min="0" data-f="price" value="${p.price}"></div>
       <div class="fgroup"><div class="flbl">Stock mínimo</div><input class="fi" type="number" step="0.1" min="0" data-f="min" value="${p.min}"></div>
+      <div class="fgroup"><div class="flbl">Contenido del bulto</div><input class="fi" type="number" step="1" min="0" data-f="contenido" value="${p.contenido||''}" placeholder="p. ej. 2500"></div>
+      <div class="fgroup"><div class="flbl">Unidad de receta</div><select class="fi" data-f="unidadReceta">
+        <option value="g"${p.unidadReceta==='g'?' selected':''}>g — gramos</option>
+        <option value="ml"${p.unidadReceta==='ml'?' selected':''}>ml — mililitros</option>
+        <option value="ud"${p.unidadReceta==='ud'?' selected':''}>ud — unidades</option></select></div>
     </div>
+    <p class="fhint">El <b>contenido del bulto</b> es cuánto trae el formato que compras, en la unidad de receta.
+    Una lata de 2,5 kg de tomate son <b>2500</b> con unidad <b>g</b>. De ahí sale el coste por gramo
+    (precio ÷ contenido), así que un error aquí multiplica o divide el coste de todas sus recetas.</p>
     <div class="ftog"><label class="tog"><input type="checkbox" data-f="isKg" ${p.isKg?'checked':''}><span class="tsl"></span></label><span class="ftlbl">Medir en kilogramos</span></div>
     <div class="factions"><button class="bsave">Guardar</button><button class="bdel">🗑 Eliminar</button></div>`;
     form.querySelector('[data-f="c"]').addEventListener('change',function(){
@@ -645,7 +661,7 @@ function renderAdmin() {
     form.querySelector('.bsave').addEventListener('click', async () => {
       const cs=form.querySelector('[data-f="c"]').value;
       const cn=form.querySelector('[data-f="cnew"]').value.trim();
-      P[i]={n:form.querySelector('[data-f="n"]').value.trim()||p.n,c:cs==='__new__'&&cn?cn:cs==='__new__'?p.c:cs,p:form.querySelector('[data-f="p"]').value.trim()||p.p,price:parseFloat(form.querySelector('[data-f="price"]').value)||p.price,min:parseFloat(form.querySelector('[data-f="min"]').value)||p.min,isKg:form.querySelector('[data-f="isKg"]').checked};
+      P[i]={n:form.querySelector('[data-f="n"]').value.trim()||p.n,c:cs==='__new__'&&cn?cn:cs==='__new__'?p.c:cs,p:form.querySelector('[data-f="p"]').value.trim()||p.p,price:parseFloat(form.querySelector('[data-f="price"]').value)||p.price,min:parseFloat(form.querySelector('[data-f="min"]').value)||p.min,isKg:form.querySelector('[data-f="isKg"]').checked,contenido:parseFloat(form.querySelector('[data-f="contenido"]').value)||p.contenido,unidadReceta:form.querySelector('[data-f="unidadReceta"]').value};
       wrap.classList.remove('open');
       top.querySelector('.arn').textContent=P[i].n;
       top.querySelector('.arm').textContent=`${P[i].p} · ${eur(P[i].price)}`;
@@ -674,8 +690,10 @@ async function confirmDel() {
 async function saveNew() {
   const name=document.getElementById('nn').value.trim();
   if(!name){showToast('⚠ El nombre es obligatorio');return;}
+  const cont=parseFloat(document.getElementById('ncont').value);
+  if(!(cont>0)){showToast('⚠ Falta el contenido del bulto: sin él el coste de sus recetas saldrá mal');return;}
   const cs=document.getElementById('nc').value;
-  P.push({n:name,c:cs==='__new__'?'Nueva':cs,p:document.getElementById('np').value.trim()||'Makro',price:parseFloat(document.getElementById('npr').value)||0,min:parseFloat(document.getElementById('nm').value)||1,isKg:document.getElementById('nkg').checked});
+  P.push({n:name,c:cs==='__new__'?'Nueva':cs,p:document.getElementById('np').value.trim()||'Makro',price:parseFloat(document.getElementById('npr').value)||0,min:parseFloat(document.getElementById('nm').value)||1,isKg:document.getElementById('nkg').checked,contenido:cont,unidadReceta:document.getElementById('nur').value});
   ST[P.length-1]=P[P.length-1].min;
   closeModal('m-new'); renderAdmin(); initFilters();
   try { await apiPost({action:'save_products',products:P}); showToast('✓ Añadido y sincronizado'); }
